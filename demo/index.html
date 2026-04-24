@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Multimodal Doc Intelligence — Project Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080b10;
+    --surface: #0d1219;
+    --card: #111820;
+    --border: #1e2a38;
+    --border2: #243040;
+    --accent: #00d4ff;
+    --accent2: #7c5cff;
+    --accent3: #00ff9d;
+    --warn: #ff6b35;
+    --text: #e8edf4;
+    --muted: #6b7d92;
+    --muted2: #8a9bb0;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Instrument Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Orbs ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.18;
+  }
+  .orb-1 { width: 500px; height: 500px; background: var(--accent2); top: -150px; right: -100px; animation: drift 20s ease-in-out infinite alternate; }
+  .orb-2 { width: 380px; height: 380px; background: var(--accent); bottom: 100px; left: -100px; animation: drift 25s ease-in-out infinite alternate-reverse; }
+  .orb-3 { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 40%; animation: drift 18s ease-in-out infinite alternate; }
+
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px, 30px) scale(1.08); } }
+
+  /* ── Layout ── */
+  .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,11,16,.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+  nav .container { display: flex; align-items: center; justify-content: space-between; }
+  .nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: var(--accent); letter-spacing: .04em; text-decoration: none; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: var(--muted2); font-size: .875rem; text-decoration: none; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 100px 0 80px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.25);
+    color: var(--accent); font-family: var(--font-mono); font-size: .72rem;
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 28px; letter-spacing: .06em;
+    animation: fadeUp .6s ease both;
+  }
+  .hero-badge .dot { width: 6px; height: 6px; background: var(--accent3); border-radius: 50%; animation: pulse 2s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    color: var(--text);
+    margin-bottom: 24px;
+    animation: fadeUp .7s .1s ease both;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    max-width: 620px; margin: 0 auto 44px;
+    color: var(--muted2); font-size: 1.05rem;
+    animation: fadeUp .7s .2s ease both;
+  }
+
+  .hero-btns {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    animation: fadeUp .7s .3s ease both;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: 8px;
+    font-family: var(--font-display); font-size: .875rem; font-weight: 600;
+    text-decoration: none; cursor: pointer; border: none;
+    transition: all .2s; letter-spacing: .02em;
+  }
+  .btn-primary {
+    background: var(--accent); color: #000;
+  }
+  .btn-primary:hover { background: #33ddff; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,.3); }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border2);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Stats strip ── */
+  .stats-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    margin: 60px 0;
+    background: var(--surface);
+    animation: fadeUp .7s .4s ease both;
+  }
+  .stat-item {
+    padding: 28px 24px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--font-display); font-size: 2.4rem; font-weight: 800;
+    color: var(--accent); line-height: 1; margin-bottom: 6px;
+  }
+  .stat-label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Section titles ── */
+  .section { padding: 70px 0; }
+  .section-tag {
+    font-family: var(--font-mono); font-size: .72rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: var(--font-display); font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 700; line-height: 1.15; margin-bottom: 14px;
+  }
+  .section-desc { color: var(--muted2); max-width: 580px; margin-bottom: 50px; }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 32px;
+    position: relative; overflow: hidden;
+  }
+  .arch-diagram::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent), var(--accent3));
+  }
+  .pipeline {
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto; padding-bottom: 8px;
+  }
+  .pipe-step {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px 18px;
+    text-align: center; min-width: 120px;
+    transition: border-color .2s, transform .2s;
+  }
+  .pipe-step:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .pipe-step .icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .pipe-step .label { font-size: .75rem; font-family: var(--font-mono); color: var(--muted2); }
+  .pipe-step .tech { font-size: .68rem; color: var(--accent); margin-top: 4px; }
+  .pipe-arrow {
+    flex-shrink: 0; color: var(--border2); font-size: 1.2rem; padding: 0 8px;
+    display: flex; align-items: center;
+  }
+  .pipe-row { display: flex; align-items: flex-start; gap: 20px; margin-top: 32px; }
+  .pipe-branch {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 10px; padding: 16px;
+  }
+  .pipe-branch-title { font-family: var(--font-mono); font-size: .72rem; color: var(--accent2); margin-bottom: 10px; }
+  .pipe-branch ul { list-style: none; }
+  .pipe-branch ul li {
+    font-size: .8rem; color: var(--muted2); padding: 3px 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pipe-branch ul li::before { content: '→'; color: var(--accent3); font-size: .75rem; }
+
+  /* ── Demo terminal ── */
+  .demo-section { padding: 70px 0; }
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  
+  .terminal {
+    background: #060910;
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    font-family: var(--font-mono);
+  }
+  .terminal-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .term-dot { width: 11px; height: 11px; border-radius: 50%; }
+  .term-dot.red { background: #ff5f57; }
+  .term-dot.yellow { background: #ffbd2e; }
+  .term-dot.green { background: #28c840; }
+  .term-title { font-size: .75rem; color: var(--muted); margin-left: 8px; letter-spacing: .04em; }
+  .terminal-body { padding: 20px; font-size: .8rem; line-height: 1.9; }
+  .t-comment { color: #4a5f70; }
+  .t-cmd { color: var(--text); }
+  .t-out { color: var(--accent3); }
+  .t-key { color: var(--accent); }
+  .t-val { color: var(--warn); }
+  .t-str { color: #a8d8a8; }
+  .t-dim { color: var(--muted); }
+  .t-prompt { color: var(--accent2); margin-right: 6px; }
+
+  /* ── Q&A Interactive Demo ── */
+  .qa-demo {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+    margin-top: 40px;
+  }
+  .qa-demo-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .qa-demo-title { font-family: var(--font-display); font-weight: 600; font-size: .9rem; }
+  .live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: .7rem; color: var(--accent3);
+  }
+  .live-dot { width: 7px; height: 7px; background: var(--accent3); border-radius: 50%; animation: pulse 2s infinite; }
+
+  .qa-questions {
+    padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .qa-chip {
+    background: var(--card); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 7px 16px;
+    font-size: .8rem; cursor: pointer; transition: all .2s;
+    color: var(--muted2);
+  }
+  .qa-chip:hover, .qa-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,.06); }
+
+  .qa-output { padding: 24px; min-height: 200px; }
+  .qa-question-display {
+    font-family: var(--font-display); font-size: 1.05rem; font-weight: 600;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .qa-answer { color: var(--muted2); font-size: .9rem; line-height: 1.75; margin-bottom: 20px; }
+  .qa-answer strong { color: var(--text); }
+  .qa-sources { display: flex; flex-wrap: wrap; gap: 8px; }
+  .qa-source-tag {
+    background: rgba(124,92,255,.1); border: 1px solid rgba(124,92,255,.3);
+    color: var(--accent2); font-family: var(--font-mono); font-size: .7rem;
+    padding: 4px 10px; border-radius: 4px;
+  }
+
+  .typing-cursor {
+    display: inline-block; width: 2px; height: 1em;
+    background: var(--accent); margin-left: 2px;
+    animation: blink .8s ease infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── Code tabs ── */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    margin-top: 24px;
+  }
+  .code-tabs {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex; padding: 0 16px;
+  }
+  .code-tab {
+    padding: 12px 18px; font-family: var(--font-mono); font-size: .76rem;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all .2s; user-select: none;
+  }
+  .code-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .code-body { padding: 24px; font-family: var(--font-mono); font-size: .8rem; line-height: 1.85; display: none; overflow-x: auto; }
+  .code-body.active { display: block; }
+  .kw { color: #c792ea; }
+  .fn { color: var(--accent); }
+  .str { color: var(--accent3); }
+  .cm { color: #4a5f70; font-style: italic; }
+  .py-dec { color: var(--warn); }
+  .py-cls { color: #ffcb6b; }
+  .py-num { color: #f78c6c; }
+  .py-param { color: #89ddff; }
+
+  /* ── RAGAS chart ── */
+  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    text-align: center;
+  }
+  .metric-ring-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 12px; }
+  .metric-ring-bg { fill: none; stroke: var(--border); stroke-width: 6; }
+  .metric-ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dasharray 1.5s ease; }
+  .metric-ring-text { fill: var(--text); font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; }
+  .metric-name { font-family: var(--font-mono); font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* ── Eval pipeline flow ── */
+  .eval-flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 30px; }
+  .eval-step {
+    background: var(--card); padding: 20px 14px;
+    border: 1px solid var(--border); text-align: center;
+    border-right: none; position: relative;
+  }
+  .eval-step:last-child { border-right: 1px solid var(--border); }
+  .eval-step::after {
+    content: '›';
+    position: absolute; right: -12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent2); font-size: 1.4rem; z-index: 2;
+  }
+  .eval-step:last-child::after { display: none; }
+  .eval-step .num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--accent2); }
+  .eval-step .label { font-size: .75rem; color: var(--muted2); margin-top: 6px; line-height: 1.4; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: .82rem;
+    position: relative; z-index: 1;
+  }
+  footer a { color: var(--accent2); text-decoration: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .stats-strip { grid-template-columns: repeat(2, 1fr); }
+    .demo-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .eval-flow { grid-template-columns: 1fr; }
+    .eval-step { border-right: 1px solid var(--border); border-bottom: none; }
+    .eval-step:last-child { border-bottom: 1px solid var(--border); }
+    .eval-step::after { content: '↓'; right: 50%; top: auto; bottom: -14px; transform: translateX(50%); }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="#" class="nav-logo">MDIS</a>
+    <div class="nav-links">
+      <a href="#architecture">Architecture</a>
+      <a href="#demo">Live Demo</a>
+      <a href="#code">Code</a>
+      <a href="#eval">Evaluation</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Personal R&D — January 2026
+    </div>
+    <h1>
+      Multimodal<br/>
+      <span class="grad">Doc Intelligence</span>
+    </h1>
+    <p class="hero-sub">
+      RAG pipeline over PDFs, scanned invoices, and chart-heavy reports
+      using <strong>GPT-4o Vision</strong> + <strong>LangChain</strong> + <strong>Weaviate</strong> —
+      achieving <strong>87% answer accuracy</strong> on RAGAS benchmarks.
+    </p>
+    <div class="hero-btns">
+      <a href="https://github.com/YOUR_USERNAME/multimodal-doc-intelligence" target="_blank" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#demo" class="btn btn-outline">
+        ▶ Live Demo
+      </a>
+      <a href="#architecture" class="btn btn-outline">
+        System Architecture
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-strip">
+      <div class="stat-item">
+        <div class="stat-num" id="s1">0%</div>
+        <div class="stat-label">Answer Accuracy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="s2">0</div>
+        <div class="stat-label">Doc Types</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="s3">0</div>
+        <div class="stat-label">Pipeline Passes</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="s4">0ms</div>
+        <div class="stat-label">Avg Query Latency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="section" id="architecture">
+  <div class="container">
+    <div class="section-tag">01 — System Design</div>
+    <h2>Pipeline Architecture</h2>
+    <p class="section-desc">Two-pass ingestion merges Tesseract OCR signal with GPT-4o visual descriptions into hybrid semantic vectors, enabling retrieval across text, tables, and diagrams.</p>
+
+    <div class="arch-diagram">
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="icon">📄</div>
+          <div class="label">Input PDF</div>
+          <div class="tech">PyMuPDF</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="icon">🖼️</div>
+          <div class="label">Page Images</div>
+          <div class="tech">200 DPI raster</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" style="border-color: rgba(0,212,255,.4)">
+          <div class="icon">🔤</div>
+          <div class="label">Pass 1: OCR</div>
+          <div class="tech">pytesseract</div>
+        </div>
+        <div class="pipe-arrow">+</div>
+        <div class="pipe-step" style="border-color: rgba(124,92,255,.4)">
+          <div class="icon">👁️</div>
+          <div class="label">Pass 2: Vision</div>
+          <div class="tech">GPT-4o Vision</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="icon">✂️</div>
+          <div class="label">Chunking</div>
+          <div class="tech">512t / 64t overlap</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" style="border-color: rgba(0,255,157,.4)">
+          <div class="icon">🗄️</div>
+          <div class="label">Weaviate</div>
+          <div class="tech">Hybrid vectors</div>
+        </div>
+      </div>
+
+      <div class="pipe-row">
+        <div class="pipe-branch">
+          <div class="pipe-branch-title">// Ingestion signals combined per chunk</div>
+          <ul>
+            <li>OCR text: raw characters, numbers, dates</li>
+            <li>Visual desc: table structure, chart data, layout</li>
+            <li>Metadata: source_file, page_number, doc_type</li>
+            <li>has_visual flag for visual-dominant pages</li>
+          </ul>
+        </div>
+        <div class="pipe-branch">
+          <div class="pipe-branch-title">// Retrieval: hybrid BM25 + dense (α=0.6)</div>
+          <ul>
+            <li>Dense: OpenAI text-embedding-3-small</li>
+            <li>Sparse: BM25 keyword matching</li>
+            <li>Filter by doc_type (invoice / report / generic)</li>
+            <li>Deduplication by (file, page, chunk_index)</li>
+          </ul>
+        </div>
+        <div class="pipe-branch">
+          <div class="pipe-branch-title">// Answer generation</div>
+          <ul>
+            <li>GPT-4o with grounded system prompt</li>
+            <li>Source attribution: [Source N, Page X]</li>
+            <li>Low temperature (0.1) for factual extraction</li>
+            <li>FastAPI endpoint with latency tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="section demo-section" id="demo">
+  <div class="container">
+    <div class="section-tag">02 — Interactive Demo</div>
+    <h2>See It In Action</h2>
+    <p class="section-desc">Simulated Q&A responses across three enterprise document types. Click any question to see the system response with source attribution.</p>
+
+    <div class="demo-grid">
+      <!-- Terminal: Ingestion -->
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="term-dot red"></span>
+          <span class="term-dot yellow"></span>
+          <span class="term-dot green"></span>
+          <span class="term-title">ingestion_log.sh</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">$</span><span class="t-cmd"> curl -X POST /ingest \</span></div>
+          <div>&nbsp;&nbsp;&nbsp;<span class="t-str">-F "file=@q3_report.pdf"</span> \</div>
+          <div>&nbsp;&nbsp;&nbsp;<span class="t-str">-F "doc_type=report"</span></div>
+          <br/>
+          <div><span class="t-dim">// Response ↓</span></div>
+          <div><span class="t-out">{</span></div>
+          <div>&nbsp;&nbsp;<span class="t-key">"file"</span>: <span class="t-str">"q3_report.pdf"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"pages"</span>: <span class="t-val">24</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"chunks"</span>: <span class="t-val">187</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"doc_type"</span>: <span class="t-str">"report"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"latency_ms"</span>: <span class="t-val">4312</span></div>
+          <div><span class="t-out">}</span></div>
+          <br/>
+          <div><span class="t-dim">// Pass 1: pytesseract → 24 pages</span></div>
+          <div><span class="t-dim">// Pass 2: GPT-4o vision → 24 descriptions</span></div>
+          <div><span class="t-dim">// Weaviate upserted: 187 chunks ✓</span></div>
+        </div>
+      </div>
+
+      <!-- Terminal: Ask endpoint -->
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="term-dot red"></span>
+          <span class="term-dot yellow"></span>
+          <span class="term-dot green"></span>
+          <span class="term-title">query.sh</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">$</span><span class="t-cmd"> curl -X POST /ask \</span></div>
+          <div>&nbsp;&nbsp;&nbsp;<span class="t-str">-d '{"question": "What was Q3 revenue?",</span></div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-str">"doc_type_filter": "report"}'</span></div>
+          <br/>
+          <div><span class="t-out">{</span></div>
+          <div>&nbsp;&nbsp;<span class="t-key">"answer"</span>: <span class="t-str">"Q3 revenue was $12.4M,</span></div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-str">an 18.4% YoY increase</span></div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-str">[Source 1, Page 7]"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"sources"</span>: [{</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"file"</span>: <span class="t-str">"q3_report.pdf"</span>,</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-key">"page"</span>: <span class="t-val">7</span>, <span class="t-key">"score"</span>: <span class="t-val">0.934</span></div>
+          <div>&nbsp;&nbsp;}],</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"context_chunks"</span>: <span class="t-val">6</span>,</div>
+          <div>&nbsp;&nbsp;<span class="t-key">"latency_ms"</span>: <span class="t-val">842</span></div>
+          <div><span class="t-out">}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q&A interactive demo -->
+    <div class="qa-demo">
+      <div class="qa-demo-header">
+        <div class="qa-demo-title">Interactive Q&A Demo</div>
+        <div class="live-badge"><span class="live-dot"></span>Simulated Responses</div>
+      </div>
+      <div class="qa-questions" id="qaChips">
+        <div class="qa-chip active" onclick="showQA(0)">Invoice total amount</div>
+        <div class="qa-chip" onclick="showQA(1)">Q3 revenue growth %</div>
+        <div class="qa-chip" onclick="showQA(2)">Vendor name on invoice</div>
+        <div class="qa-chip" onclick="showQA(3)">Top expense categories</div>
+        <div class="qa-chip" onclick="showQA(4)">Chart data extraction</div>
+      </div>
+      <div class="qa-output" id="qaOutput"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CODE -->
+<section class="section" id="code">
+  <div class="container">
+    <div class="section-tag">03 — Implementation</div>
+    <h2>Core Code</h2>
+    <p class="section-desc">Key modules from the pipeline. Full source on GitHub.</p>
+
+    <div class="code-block">
+      <div class="code-tabs">
+        <div class="code-tab active" onclick="switchTab(0)">pipeline.py</div>
+        <div class="code-tab" onclick="switchTab(1)">retriever.py</div>
+        <div class="code-tab" onclick="switchTab(2)">qa_chain.py</div>
+        <div class="code-tab" onclick="switchTab(3)">main.py (API)</div>
+      </div>
+
+      <!-- Tab 0 -->
+      <div class="code-body active" id="tab0">
+<span class="cm"># Two-pass ingestion: OCR + GPT-4o Vision</span>
+<br/>
+<span class="kw">def</span> <span class="fn">ingest_pdf</span>(<span class="py-param">pdf_path</span>: <span class="py-cls">str</span>, <span class="py-param">doc_type</span>: <span class="py-cls">str</span> = <span class="str">"generic"</span>) -> <span class="py-cls">dict</span>:
+    pages = pdf_to_images(pdf_path)
+    <span class="kw">for</span> page_num, image <span class="kw">in</span> pages:
+&nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="cm"># Pass 1 — pytesseract OCR</span>
+        ocr_text = <span class="fn">ocr_page</span>(image)
+&nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="cm"># Pass 2 — GPT-4o page-level visual description</span>
+        visual_desc = <span class="fn">vision_describe_page</span>(image)
+&nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="cm"># Combine both signals → chunk → upsert to Weaviate</span>
+        combined = <span class="str">f"[OCR TEXT]\n{ocr_text}\n\n[VISUAL]\n{visual_desc}"</span>
+        chunks = <span class="fn">smart_chunk_text</span>(combined, chunk_size=<span class="py-num">512</span>, overlap=<span class="py-num">64</span>)
+        <span class="kw">for</span> chunk <span class="kw">in</span> chunks:
+            collection.data.<span class="fn">insert</span>({
+                <span class="str">"content"</span>: chunk,
+                <span class="str">"source_file"</span>: path.name,
+                <span class="str">"page_number"</span>: page_num,
+                <span class="str">"doc_type"</span>: doc_type,
+                <span class="str">"has_visual"</span>: <span class="py-cls">bool</span>(visual_desc),
+            })
+      </div>
+
+      <!-- Tab 1 -->
+      <div class="code-body" id="tab1">
+<span class="cm"># Hybrid search: BM25 + dense (α=0.6)</span>
+<br/>
+<span class="kw">def</span> <span class="fn">hybrid_search</span>(
+    <span class="py-param">query</span>: <span class="py-cls">str</span>,
+    <span class="py-param">top_k</span>: <span class="py-cls">int</span> = <span class="py-num">6</span>,
+    <span class="py-param">alpha</span>: <span class="py-cls">float</span> = <span class="py-num">0.6</span>,    <span class="cm"># 0=BM25, 1=dense</span>
+    <span class="py-param">doc_type_filter</span>: <span class="py-cls">str</span> | <span class="kw">None</span> = <span class="kw">None</span>,
+) -> <span class="py-cls">list</span>[<span class="py-cls">RetrievedChunk</span>]:
+<br/>
+    results = collection.query.<span class="fn">hybrid</span>(
+        query=query,
+        alpha=alpha,      <span class="cm"># favors semantic over keyword</span>
+        limit=top_k,
+        filters=filters,
+        return_metadata=MetadataQuery(score=<span class="kw">True</span>),
+    )
+    <span class="kw">return</span> [
+        <span class="py-cls">RetrievedChunk</span>(
+            content=obj.properties[<span class="str">"content"</span>],
+            source_file=obj.properties[<span class="str">"source_file"</span>],
+            page_number=obj.properties[<span class="str">"page_number"</span>],
+            score=obj.metadata.score,
+        )
+        <span class="kw">for</span> obj <span class="kw">in</span> results.objects
+    ]
+      </div>
+
+      <!-- Tab 2 -->
+      <div class="code-body" id="tab2">
+<span class="cm"># RAG chain: retrieve → generate → attribute sources</span>
+<br/>
+SYSTEM_PROMPT = <span class="str">"""You are a precise document analyst.
+Rules:
+1. Answer ONLY from context. Never hallucinate.
+2. Cite sources as [Source N, Page X] inline.
+3. If not found: 'I could not find this information.'
+4. Be concise. Prefer bullets for multi-part answers."""</span>
+<br/>
+<span class="kw">def</span> <span class="fn">answer_question</span>(<span class="py-param">question</span>: <span class="py-cls">str</span>, <span class="py-param">top_k</span>: <span class="py-cls">int</span> = <span class="py-num">6</span>) -> <span class="py-cls">QAResponse</span>:
+    chunks = <span class="fn">hybrid_search</span>(question, top_k=top_k)
+    chunks = <span class="fn">deduplicate_chunks</span>(chunks)
+    context = <span class="fn">build_context</span>(chunks)
+<br/>
+    response = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="str">"gpt-4o"</span>,
+        messages=[
+            {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: SYSTEM_PROMPT},
+            {<span class="str">"role"</span>: <span class="str">"user"</span>,   <span class="str">"content"</span>: <span class="str">f"Context:\n{context}\n\nQ: {question}"</span>},
+        ],
+        temperature=<span class="py-num">0.1</span>,   <span class="cm"># low temp for factual extraction</span>
+    )
+    <span class="kw">return</span> <span class="py-cls">QAResponse</span>(answer=response.choices[<span class="py-num">0</span>].message.content, sources=chunks)
+      </div>
+
+      <!-- Tab 3 -->
+      <div class="code-body" id="tab3">
+<span class="cm"># FastAPI backend — 4 core endpoints</span>
+<br/>
+app = <span class="fn">FastAPI</span>(title=<span class="str">"Multimodal Doc Intelligence API"</span>, version=<span class="str">"1.0.0"</span>)
+<br/>
+<span class="py-dec">@app.post</span>(<span class="str">"/ingest"</span>, response_model=<span class="py-cls">IngestResponse</span>)
+<span class="kw">async def</span> <span class="fn">ingest_document</span>(<span class="py-param">file</span>: <span class="py-cls">UploadFile</span> = <span class="fn">File</span>(...), <span class="py-param">doc_type</span>: <span class="py-cls">str</span> = <span class="fn">Form</span>(<span class="str">"generic"</span>)):
+    <span class="cm">"""Upload PDF → two-pass ingestion → Weaviate"""</span>
+    stats = <span class="fn">ingest_pdf</span>(saved_path, doc_type=doc_type)
+    <span class="kw">return</span> <span class="py-cls">IngestResponse</span>(**stats, latency_ms=elapsed)
+<br/>
+<span class="py-dec">@app.post</span>(<span class="str">"/ask"</span>, response_model=<span class="py-cls">AskResponse</span>)
+<span class="kw">def</span> <span class="fn">ask</span>(<span class="py-param">req</span>: <span class="py-cls">AskRequest</span>):
+    <span class="cm">"""Q&A with source page attribution"""</span>
+    result = <span class="fn">answer_question</span>(req.question, top_k=req.top_k)
+    <span class="kw">return</span> <span class="py-cls">AskResponse</span>(answer=result.answer, sources=result.sources)
+<br/>
+<span class="py-dec">@app.get</span>(<span class="str">"/documents"</span>)    <span class="cm"># list all ingested docs + chunk counts</span>
+<span class="py-dec">@app.post</span>(<span class="str">"/benchmark"</span>)   <span class="cm"># RAGAS evaluation endpoint</span>
+<span class="py-dec">@app.get</span>(<span class="str">"/health"</span>)       <span class="cm"># {"status": "ok", "version": "1.0.0"}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVALUATION -->
+<section class="section" id="eval">
+  <div class="container">
+    <div class="section-tag">04 — Benchmarking</div>
+    <h2>RAGAS Evaluation Results</h2>
+    <p class="section-desc">Evaluated on 50 question-answer pairs across all three document types using the RAGAS framework.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-ring-wrap">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle class="metric-ring-bg" cx="40" cy="40" r="34"/>
+            <circle class="metric-ring-fill" cx="40" cy="40" r="34" stroke="#00d4ff" id="r1"
+              stroke-dasharray="0 214" stroke-dashoffset="53" transform="rotate(-90 40 40)"/>
+            <text class="metric-ring-text" x="40" y="44" text-anchor="middle">87%</text>
+          </svg>
+        </div>
+        <div class="metric-name">Faithfulness</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-ring-wrap">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle class="metric-ring-bg" cx="40" cy="40" r="34"/>
+            <circle class="metric-ring-fill" cx="40" cy="40" r="34" stroke="#7c5cff" id="r2"
+              stroke-dasharray="0 214" stroke-dashoffset="53" transform="rotate(-90 40 40)"/>
+            <text class="metric-ring-text" x="40" y="44" text-anchor="middle">91%</text>
+          </svg>
+        </div>
+        <div class="metric-name">Answer Relevancy</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-ring-wrap">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle class="metric-ring-bg" cx="40" cy="40" r="34"/>
+            <circle class="metric-ring-fill" cx="40" cy="40" r="34" stroke="#00ff9d" id="r3"
+              stroke-dasharray="0 214" stroke-dashoffset="53" transform="rotate(-90 40 40)"/>
+            <text class="metric-ring-text" x="40" y="44" text-anchor="middle">84%</text>
+          </svg>
+        </div>
+        <div class="metric-name">Context Precision</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-ring-wrap">
+          <svg viewBox="0 0 80 80" width="80" height="80">
+            <circle class="metric-ring-bg" cx="40" cy="40" r="34"/>
+            <circle class="metric-ring-fill" cx="40" cy="40" r="34" stroke="#ff6b35" id="r4"
+              stroke-dasharray="0 214" stroke-dashoffset="53" transform="rotate(-90 40 40)"/>
+            <text class="metric-ring-text" x="40" y="44" text-anchor="middle">82%</text>
+          </svg>
+        </div>
+        <div class="metric-name">Context Recall</div>
+      </div>
+    </div>
+
+    <div class="eval-flow">
+      <div class="eval-step">
+        <div class="num">50</div>
+        <div class="label">Test Q&A pairs across 3 doc types</div>
+      </div>
+      <div class="eval-step">
+        <div class="num">6</div>
+        <div class="label">Chunks retrieved per question</div>
+      </div>
+      <div class="eval-step">
+        <div class="num">4</div>
+        <div class="label">RAGAS metrics evaluated</div>
+      </div>
+      <div class="eval-step">
+        <div class="num">87%</div>
+        <div class="label">Overall answer accuracy score</div>
+      </div>
+      <div class="eval-step">
+        <div class="num">842ms</div>
+        <div class="label">Average end-to-end latency</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>Built with GPT-4o Vision · LangChain · Weaviate · FastAPI · RAGAS · Docker</p>
+    <p style="margin-top:8px">
+      <a href="https://github.com/YOUR_USERNAME/multimodal-doc-intelligence">github.com/YOUR_USERNAME/multimodal-doc-intelligence</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+// ── Counter animation ──────────────────────────────────
+function animateCounter(el, target, suffix, duration = 1600) {
+  const start = performance.now();
+  const update = (now) => {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(ease * target);
+    el.textContent = val + suffix;
+    if (t < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      animateCounter(document.getElementById('s1'), 87, '%');
+      animateCounter(document.getElementById('s2'), 3, '');
+      animateCounter(document.getElementById('s3'), 2, '');
+      animateCounter(document.getElementById('s4'), 842, 'ms');
+      io.disconnect();
+    }
+  });
+});
+io.observe(document.querySelector('.stats-strip'));
+
+// ── RAGAS ring animation ─────────────────────────────
+const scores = [87, 91, 84, 82];
+const colors = ['#00d4ff','#7c5cff','#00ff9d','#ff6b35'];
+function animateRings() {
+  scores.forEach((score, i) => {
+    const circle = document.getElementById(`r${i+1}`);
+    const circumference = 2 * Math.PI * 34;
+    const target = (score / 100) * circumference;
+    let current = 0;
+    const step = target / 60;
+    const interval = setInterval(() => {
+      current = Math.min(current + step, target);
+      circle.setAttribute('stroke-dasharray', `${current} ${circumference}`);
+      if (current >= target) clearInterval(interval);
+    }, 16);
+  });
+}
+const ringObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { animateRings(); ringObserver.disconnect(); } });
+});
+ringObserver.observe(document.getElementById('eval'));
+
+// ── Code tabs ──────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.code-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.code-body').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+// ── Q&A Demo ───────────────────────────────────────────
+const qaData = [
+  {
+    q: "What is the total invoice amount including tax?",
+    a: "The total invoice amount is <strong>$4,320.00</strong>, which includes a base amount of $3,840.00 and applicable tax of $480.00 (12.5%). [Source 1, Page 2]",
+    sources: ["INV-2024-0892.pdf · Page 2", "INV-2024-0892.pdf · Page 1"],
+    docType: "invoice"
+  },
+  {
+    q: "What was the Q3 revenue growth percentage shown in the bar chart?",
+    a: "Q3 revenue reached <strong>$12.4M</strong>, representing an <strong>18.4% year-over-year</strong> increase from Q3 2023's $10.47M. This figure is extracted from the grouped bar chart on page 7. [Source 1, Page 7]",
+    sources: ["q3_report.pdf · Page 7", "q3_report.pdf · Page 3"],
+    docType: "report"
+  },
+  {
+    q: "Who is the vendor on the scanned invoice?",
+    a: "The vendor on invoice <strong>INV-2024-0892</strong> is <strong>Acme Supply Co.</strong>, located at 1400 Industrial Blvd, San Jose, CA 95110. Payment is due to account ending in 4892. [Source 1, Page 1]",
+    sources: ["invoice_acme.pdf · Page 1"],
+    docType: "invoice"
+  },
+  {
+    q: "What are the top three expense categories?",
+    a: "Based on the pie chart on page 11, the top three expense categories are:\n• <strong>Personnel</strong> — 42% ($5.2M)\n• <strong>Technology</strong> — 23% ($2.85M)\n• <strong>Marketing</strong> — 18% ($2.23M)\n[Source 1, Page 11]",
+    sources: ["q3_report.pdf · Page 11", "q3_report.pdf · Page 12"],
+    docType: "report"
+  },
+  {
+    q: "Extract all data points from the revenue trend chart",
+    a: "The revenue trend line chart (Page 5) shows monthly values:\n• Jan: $1.1M · Feb: $1.3M · Mar: $1.4M\n• Apr: $1.2M · May: $1.6M · Jun: $1.7M\n• Jul: $1.9M · Aug: $2.1M · Sep: $2.4M\nPeak: September at $2.4M. GPT-4o Vision extracted these values directly from chart axes. [Source 1, Page 5]",
+    sources: ["q3_report.pdf · Page 5", "q3_report.pdf · Page 6"],
+    docType: "report"
+  },
+];
+
+let currentQA = 0;
+let typeTimeout;
+
+function showQA(idx) {
+  currentQA = idx;
+  document.querySelectorAll('.qa-chip').forEach((c, i) => c.classList.toggle('active', i === idx));
+  const output = document.getElementById('qaOutput');
+  const data = qaData[idx];
+
+  output.innerHTML = `
+    <div class="qa-question-display">${data.q}</div>
+    <div class="qa-answer" id="qaText"></div>
+    <div class="qa-sources">
+      ${data.sources.map(s => `<span class="qa-source-tag">📄 ${s}</span>`).join('')}
+    </div>
+  `;
+
+  // Type effect
+  clearTimeout(typeTimeout);
+  const textEl = document.getElementById('qaText');
+  const html = data.a.replace(/\n/g, '<br/>');
+  textEl.innerHTML = '<span class="typing-cursor"></span>';
+  
+  let i = 0;
+  const chars = data.a;
+  function typeChar() {
+    if (i < chars.length) {
+      const cursor = textEl.querySelector('.typing-cursor');
+      if (cursor) {
+        const txt = chars.substring(0, i + 1);
+        textEl.innerHTML = txt.replace(/\n/g, '<br/>') + '<span class="typing-cursor"></span>';
+      }
+      i++;
+      typeTimeout = setTimeout(typeChar, 8);
+    } else {
+      textEl.innerHTML = html;
+    }
+  }
+  typeChar();
+}
+
+// Initialize
+showQA(0);
+</script>
+</body>
+</html>

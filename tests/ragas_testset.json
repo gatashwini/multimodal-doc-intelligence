@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What was the total revenue in Q3 2024?",
+    "ground_truth": "The total revenue in Q3 2024 was $12.4 million."
+  },
+  {
+    "question": "What is the invoice total on INV-2024-0892?",
+    "ground_truth": "The invoice total is $5,670.00 including 12.5% tax."
+  },
+  {
+    "question": "Who are the top enterprise clients?",
+    "ground_truth": "The top clients are GlobalTech Corp, FinanceHub Ltd, MedSystems Inc, RetailMax Group, and DataStream Co."
+  },
+  {
+    "question": "What percentage of expenses is personnel?",
+    "ground_truth": "Personnel and benefits represent 42% of total operating expenses."
+  },
+  {
+    "question": "What was the net profit margin in Q3 2024?",
+    "ground_truth": "The net profit margin was 22.3% in Q3 2024."
+  }
+]

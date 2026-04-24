@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Multimodal Doc Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:       #0f0f0f;
+  --paper:     #faf8f4;
+  --cream:     #f3f0e8;
+  --rule:      #e4e0d6;
+  --muted:     #9a9589;
+  --accent:    #c8410a;
+  --accent2:   #1a5c8f;
+  --accent3:   #2d7a47;
+  --gold:      #c49a1a;
+  --surface:   #ffffff;
+  --shadow:    rgba(15,15,15,.08);
+  --ff-display: 'DM Serif Display', Georgia, serif;
+  --ff-body:    'DM Sans', system-ui, sans-serif;
+  --ff-mono:    'DM Mono', 'Courier New', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--ff-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Masthead ── */
+.masthead {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0;
+  border-bottom: 3px solid var(--accent);
+}
+.masthead-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 32px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 20px;
+}
+.masthead-date {
+  font-family: var(--ff-mono);
+  font-size: .7rem;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.masthead-title {
+  font-family: var(--ff-display);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  line-height: 1.05;
+  letter-spacing: -.01em;
+}
+.masthead-title em {
+  font-style: italic;
+  color: #d4956a;
+}
+.masthead-sub {
+  font-size: .8rem;
+  color: #8a8478;
+  margin-top: 6px;
+  font-weight: 300;
+}
+.masthead-tags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.tag {
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border: 1px solid;
+}
+.tag-red   { border-color: var(--accent);  color: #d4956a; }
+.tag-blue  { border-color: #4a8fc0;        color: #4a8fc0; }
+.tag-green { border-color: #5aaa74;        color: #5aaa74; }
+
+/* ── Rule strip ── */
+.rule-strip {
+  background: var(--cream);
+  border-bottom: 1px solid var(--rule);
+  padding: 8px 0;
+}
+.rule-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+.rule-stat {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  color: var(--muted);
+}
+.rule-stat strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.rule-dot { width: 5px; height: 5px; border-radius: 50%; }
+.dot-green { background: #2d7a47; }
+.dot-amber { background: var(--gold); }
+
+/* ── Layout ── */
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+}
+
+/* ── Section headers ── */
+.section-label {
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+.section-title {
+  font-family: var(--ff-display);
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+/* ── Upload zone ── */
+.upload-zone {
+  border: 2px dashed var(--rule);
+  border-radius: 4px;
+  padding: 40px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(200,65,10,.02) 10px,
+    rgba(200,65,10,.02) 20px
+  );
+  pointer-events: none;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: #fdf5f1;
+}
+.upload-icon {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+  display: block;
+}
+.upload-headline {
+  font-family: var(--ff-display);
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+.upload-sub {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 22px;
+  font-family: var(--ff-mono);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  border: none;
+  cursor: pointer;
+  transition: background .2s;
+  text-transform: uppercase;
+}
+.upload-btn:hover { background: var(--accent); }
+
+/* ── Doc type selector ── */
+.doc-types {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: center;
+}
+.doc-type-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  font-family: var(--ff-mono);
+  font-size: .7rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+}
+.doc-type-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* ── Progress bar ── */
+.progress-wrap {
+  display: none;
+  margin-top: 16px;
+}
+.progress-wrap.show { display: block; }
+.progress-label {
+  font-family: var(--ff-mono);
+  font-size: .7rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.progress-bar {
+  height: 3px;
+  background: var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width .4s ease;
+  border-radius: 2px;
+}
+
+/* ── Ingestion result ── */
+.ingest-result {
+  display: none;
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: #f0fdf4;
+  border-left: 3px solid var(--accent3);
+}
+.ingest-result.show { display: block; }
+.ingest-result-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+.ingest-stat { text-align: center; }
+.ingest-stat-num {
+  font-family: var(--ff-display);
+  font-size: 1.6rem;
+  color: var(--accent3);
+  line-height: 1;
+}
+.ingest-stat-label {
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: 3px;
+}
+
+/* ── Q&A section ── */
+.qa-section { margin-top: 32px; }
+
+.question-bar {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--ink);
+  background: var(--surface);
+}
+.question-input {
+  flex: 1;
+  padding: 14px 18px;
+  font-family: var(--ff-body);
+  font-size: .95rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+}
+.question-input::placeholder { color: var(--muted); font-style: italic; }
+.question-submit {
+  padding: 14px 24px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  font-family: var(--ff-mono);
+  font-size: .75rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s;
+  white-space: nowrap;
+}
+.question-submit:hover { background: var(--accent); }
+.question-submit:disabled { background: var(--muted); cursor: not-allowed; }
+
+/* ── Sample questions ── */
+.sample-qs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sample-q {
+  padding: 5px 12px;
+  border: 1px solid var(--rule);
+  font-size: .78rem;
+  cursor: pointer;
+  color: var(--muted);
+  background: var(--surface);
+  transition: all .15s;
+  font-family: var(--ff-body);
+}
+.sample-q:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  background: #f0f6fd;
+}
+
+/* ── Answer card ── */
+.answer-feed { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+.answer-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent2);
+  animation: slideIn .3s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.answer-card-header {
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.answer-question {
+  font-family: var(--ff-display);
+  font-size: 1rem;
+  line-height: 1.3;
+  flex: 1;
+}
+.answer-meta {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.meta-chip {
+  font-family: var(--ff-mono);
+  font-size: .62rem;
+  padding: 2px 8px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.chip-time { background: var(--cream); color: var(--muted); }
+.chip-chunks { background: #eff6ff; color: var(--accent2); }
+
+.answer-body { padding: 16px 20px; }
+.answer-text {
+  font-size: .92rem;
+  line-height: 1.75;
+  color: #2a2520;
+}
+.answer-text strong { color: var(--ink); font-weight: 600; }
+
+.answer-sources {
+  padding: 10px 20px 14px;
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.sources-label {
+  font-family: var(--ff-mono);
+  font-size: .62rem;
+  color: var(--muted);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+.source-tag {
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  padding: 3px 9px;
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.source-score {
+  color: var(--accent3);
+  font-weight: 500;
+}
+
+/* ── Thinking indicator ── */
+.thinking-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  display: none;
+  align-items: center;
+  gap: 14px;
+}
+.thinking-card.show { display: flex; }
+.thinking-dots {
+  display: flex;
+  gap: 5px;
+}
+.thinking-dots span {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: bounce .8s ease infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: .15s; }
+.thinking-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,80%,100%{transform:scale(1)} 40%{transform:scale(1.4)} }
+.thinking-text {
+  font-family: var(--ff-mono);
+  font-size: .75rem;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+/* ── Sidebar ── */
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+.sidebar-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+.sidebar-card-header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 16px;
+  font-family: var(--ff-mono);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sidebar-card-body { padding: 16px; }
+
+/* ── Document list ── */
+.doc-list { display: flex; flex-direction: column; gap: 8px; }
+.doc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  transition: border-color .15s;
+}
+.doc-item:hover { border-color: var(--accent2); }
+.doc-icon { font-size: 1.2rem; flex-shrink: 0; }
+.doc-info { flex: 1; min-width: 0; }
+.doc-name {
+  font-size: .82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-chunks {
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.doc-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  font-size: .82rem;
+  font-style: italic;
+}
+
+/* ── Metrics ── */
+.metric-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--rule);
+  gap: 10px;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-label {
+  font-family: var(--ff-mono);
+  font-size: .68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  flex: 1;
+}
+.metric-bar-wrap { width: 80px; height: 4px; background: var(--rule); border-radius: 2px; }
+.metric-bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+.metric-val {
+  font-family: var(--ff-mono);
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--ink);
+  width: 36px;
+  text-align: right;
+}
+
+/* ── API status ── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.status-row:last-child { border-bottom: none; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.online  { background: var(--accent3); box-shadow: 0 0 0 3px rgba(45,122,71,.15); }
+.status-dot.offline { background: var(--accent); }
+.status-dot.checking { background: var(--gold); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.status-name { font-size: .8rem; flex: 1; }
+.status-val { font-family: var(--ff-mono); font-size: .68rem; color: var(--muted); }
+
+/* ── Footer rule ── */
+.footer-rule {
+  max-width: 1200px;
+  margin: 0 auto 32px;
+  padding: 0 32px;
+}
+.footer-line {
+  border-top: 2px solid var(--ink);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-copy { font-family: var(--ff-mono); font-size: .65rem; color: var(--muted); letter-spacing: .06em; }
+.footer-stack { display: flex; gap: 12px; }
+.stack-item { font-family: var(--ff-mono); font-size: .62rem; color: var(--muted); text-decoration: none; }
+.stack-item:hover { color: var(--accent); }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--ink); color: var(--paper);
+  padding: 12px 20px;
+  font-family: var(--ff-mono); font-size: .75rem;
+  letter-spacing: .04em;
+  transform: translateY(100px); opacity: 0;
+  transition: all .3s ease;
+  z-index: 999;
+  border-left: 3px solid var(--accent3);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.error { border-left-color: var(--accent); }
+/* ── Answer actions ── */
+.answer-actions {
+  padding: 10px 20px;
+  border-top: 1px dashed var(--rule);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--ff-mono);
+  font-size: .65rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.action-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--cream);
+}
+.action-btn.copied {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  background: #f0fdf4;
+}
+/* ── Error card ── */
+.error-card {
+  border-left-color: var(--accent) !important;
+}
+.error-text { color: var(--accent); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .masthead-inner { grid-template-columns: 1fr; }
+  .masthead-tags { flex-direction: row; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <div class="masthead-date" id="currentDate"></div>
+      <div class="masthead-title">Multimodal <em>Document</em> Intelligence</div>
+      <div class="masthead-sub">GPT-4o Vision · Weaviate Hybrid Search · FastAPI · RAGAS 87% Accuracy</div>
+    </div>
+    <div class="masthead-tags">
+      <span class="tag tag-red">RAG Pipeline</span>
+      <span class="tag tag-blue">Vector Search</span>
+      <span class="tag tag-green">v1.0.0</span>
+    </div>
+  </div>
+</header>
+
+<!-- RULE STRIP -->
+<div class="rule-strip">
+  <div class="rule-inner">
+    <div class="rule-stat">
+      <span class="rule-dot dot-green"></span>
+      <span>API <strong>Online</strong></span>
+    </div>
+    <div class="rule-stat">Documents ingested: <strong id="docCount">0</strong></div>
+    <div class="rule-stat">Queries answered: <strong id="queryCount">0</strong></div>
+    <div class="rule-stat">Avg latency: <strong id="avgLatency">—</strong></div>
+    <div class="rule-stat">Model: <strong>GPT-4o</strong></div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<main class="layout">
+
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <!-- UPLOAD -->
+    <div class="section-label">01 — Document Ingestion</div>
+    <div class="section-title">Upload a Document</div>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">PDF files only · Scanned invoices, financial reports, chart-heavy documents supported</p>
+
+    <div class="upload-zone" id="uploadZone">
+      <span class="upload-icon">📄</span>
+      <div class="upload-headline">Drop your PDF here</div>
+      <div class="upload-sub">or click to browse your files</div>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+        ＋ Choose File
+      </button>
+      <input type="file" id="fileInput" accept=".pdf" style="display:none"/>
+
+      <div class="doc-types">
+        <button class="doc-type-btn active" data-type="generic">Generic</button>
+        <button class="doc-type-btn" data-type="invoice">Invoice</button>
+        <button class="doc-type-btn" data-type="report">Report</button>
+      </div>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label">
+        <span id="progressLabel">Running two-pass ingestion…</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="ingest-result" id="ingestResult">
+      <div style="font-family:var(--ff-mono);font-size:.7rem;color:var(--accent3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">✓ Ingestion Complete</div>
+      <div class="ingest-result-grid">
+        <div class="ingest-stat"><div class="ingest-stat-num" id="rPages">—</div><div class="ingest-stat-label">Pages</div></div>
+        <div class="ingest-stat"><div class="ingest-stat-num" id="rChunks">—</div><div class="ingest-stat-label">Chunks</div></div>
+        <div class="ingest-stat"><div class="ingest-stat-num" id="rLatency">—</div><div class="ingest-stat-label">ms</div></div>
+        <div class="ingest-stat"><div class="ingest-stat-num" id="rType">—</div><div class="ingest-stat-label">Doc Type</div></div>
+      </div>
+    </div>
+
+    <!-- Q&A -->
+    <div class="qa-section">
+      <div class="section-label">02 — Query Interface</div>
+      <div class="section-title">Ask a Question</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Ask anything about your ingested documents. Answers include source page attribution.</p>
+
+      <div class="question-bar">
+        <input class="question-input" id="questionInput"
+          placeholder="e.g. What was the total revenue in Q3 2024?"
+          onkeydown="if(event.key==='Enter') submitQuestion()"/>
+        <button class="question-submit" id="submitBtn" onclick="submitQuestion()">Ask →</button>
+      </div>
+
+      <div class="sample-qs" id="sampleQs">
+        <span class="sample-q" onclick="setQ(this)">Total Q3 revenue?</span>
+        <span class="sample-q" onclick="setQ(this)">What is the invoice total?</span>
+        <span class="sample-q" onclick="setQ(this)">Top enterprise clients?</span>
+        <span class="sample-q" onclick="setQ(this)">Net profit margin?</span>
+        <span class="sample-q" onclick="setQ(this)">Personnel expense percentage?</span>
+        <span class="sample-q" onclick="setQ(this)">Invoice due date?</span>
+      </div>
+
+      <div class="thinking-card" id="thinkingCard">
+        <div class="thinking-dots"><span></span><span></span><span></span></div>
+        <div class="thinking-text">Searching documents and generating answer…</div>
+      </div>
+
+      <div class="answer-feed" id="answerFeed"></div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- API Status -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">
+        <span>System Status</span>
+        <span style="color:#5aaa74">● Live</span>
+      </div>
+      <div class="sidebar-card-body">
+        <div class="status-row">
+          <span class="status-dot online"></span>
+          <span class="status-name">FastAPI Server</span>
+          <span class="status-val">:8000</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot online" id="weaviateStatus"></span>
+          <span class="status-name">Weaviate Cloud</span>
+          <span class="status-val" id="weaviateStatusText">Connected</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot online"></span>
+          <span class="status-name">GPT-4o Vision</span>
+          <span class="status-val">Ready</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot online"></span>
+          <span class="status-name">Tesseract OCR</span>
+          <span class="status-val">v5.5.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">
+        <span>Ingested Documents</span>
+        <span id="docBadge" style="background:var(--accent);color:white;padding:1px 7px;font-size:.6rem">0</span>
+      </div>
+      <div class="sidebar-card-body" style="padding:0">
+        <div class="doc-list" id="docList" style="padding:12px">
+          <div class="doc-empty">No documents ingested yet.<br/>Upload a PDF to get started.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAGAS Metrics -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">RAGAS Benchmark Scores</div>
+      <div class="sidebar-card-body">
+        <div class="metric-row">
+          <span class="metric-label">Faithfulness</span>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="background:var(--accent2);width:0%" data-w="87%"></div></div>
+          <span class="metric-val">87%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Ans. Relevancy</span>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="background:var(--accent3);width:0%" data-w="91%"></div></div>
+          <span class="metric-val">91%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Ctx. Precision</span>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="background:var(--gold);width:0%" data-w="84%"></div></div>
+          <span class="metric-val">84%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Ctx. Recall</span>
+          <div class="metric-bar-wrap"><div class="metric-bar-fill" style="background:var(--accent);width:0%" data-w="82%"></div></div>
+          <span class="metric-val">82%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline Info -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-header">Pipeline Configuration</div>
+      <div class="sidebar-card-body">
+        <div class="status-row">
+          <span class="status-name" style="font-size:.78rem;color:var(--muted)">Ingestion</span>
+          <span class="status-val">OCR + Vision</span>
+        </div>
+        <div class="status-row">
+          <span class="status-name" style="font-size:.78rem;color:var(--muted)">Search Mode</span>
+          <span class="status-val">Hybrid α=0.6</span>
+        </div>
+        <div class="status-row">
+          <span class="status-name" style="font-size:.78rem;color:var(--muted)">Chunk Size</span>
+          <span class="status-val">512 / 64t</span>
+        </div>
+        <div class="status-row">
+          <span class="status-name" style="font-size:.78rem;color:var(--muted)">Top-K</span>
+          <span class="status-val">6 chunks</span>
+        </div>
+        <div class="status-row">
+          <span class="status-name" style="font-size:.78rem;color:var(--muted)">Temperature</span>
+          <span class="status-val">0.1</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<!-- FOOTER -->
+<div class="footer-rule">
+  <div class="footer-line">
+    <span class="footer-copy">Multimodal Document Intelligence System · Personal R&D · 2026</span>
+    <div class="footer-stack">
+      <span class="footer-copy">GPT-4o Vision</span>
+      <span class="footer-copy">·</span>
+      <span class="footer-copy">Weaviate</span>
+      <span class="footer-copy">·</span>
+      <span class="footer-copy">FastAPI</span>
+      <span class="footer-copy">·</span>
+      <span class="footer-copy">RAGAS</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:8000';
+let selectedDocType = 'generic';
+let queryCount = 0;
+let totalLatency = 0;
+let ingestedDocs = [];
+
+// ── Init ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Date
+  document.getElementById('currentDate').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).toUpperCase();
+
+  // Animate RAGAS bars
+  setTimeout(() => {
+    document.querySelectorAll('.metric-bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.w;
+    });
+  }, 600);
+
+  // Load existing docs
+  loadDocuments();
+
+  // Doc type buttons
+  document.querySelectorAll('.doc-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.doc-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedDocType = btn.dataset.type;
+    });
+  });
+
+  // File input
+  document.getElementById('fileInput').addEventListener('change', e => {
+    if (e.target.files[0]) handleUpload(e.target.files[0]);
+  });
+
+  // Drag and drop
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') handleUpload(file);
+    else showToast('Please drop a PDF file', true);
+  });
+});
+
+// ── Upload & Ingest ───────────────────────────────────────
+async function handleUpload(file) {
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressPct = document.getElementById('progressPct');
+  const ingestResult = document.getElementById('ingestResult');
+
+  ingestResult.classList.remove('show');
+  progressWrap.classList.add('show');
+
+  // Animated progress (simulated — real progress isn't available via HTTP)
+  const steps = [
+    { pct: 15, label: 'Reading PDF pages…' },
+    { pct: 35, label: 'Pass 1: Running Tesseract OCR…' },
+    { pct: 65, label: 'Pass 2: GPT-4o Vision analysis…' },
+    { pct: 85, label: 'Chunking and embedding…' },
+    { pct: 95, label: 'Upserting to Weaviate…' },
+  ];
+
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx < steps.length) {
+      const s = steps[stepIdx];
+      progressFill.style.width = s.pct + '%';
+      progressLabel.textContent = s.label;
+      progressPct.textContent = s.pct + '%';
+      stepIdx++;
+    }
+  }, 1800);
+
+  try {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('doc_type', selectedDocType);
+
+    const res = await fetch(`${API}/ingest`, { method: 'POST', body: form });
+    clearInterval(interval);
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Ingestion failed');
+    }
+
+    const data = await res.json();
+
+    progressFill.style.width = '100%';
+    progressLabel.textContent = 'Complete!';
+    progressPct.textContent = '100%';
+
+    setTimeout(() => {
+      progressWrap.classList.remove('show');
+      showIngestResult(data);
+      loadDocuments();
+      showToast(`✓ ${data.file} ingested — ${data.chunks} chunks created`);
+      setTimeout(() => loadDocuments(), 1500);
+    }, 600);
+
+  } catch (err) {
+    clearInterval(interval);
+    progressWrap.classList.remove('show');
+    showToast('Ingestion failed: ' + err.message, true);
+  }
+}
+
+function showIngestResult(data) {
+  document.getElementById('rPages').textContent = data.pages;
+  document.getElementById('rChunks').textContent = data.chunks;
+  document.getElementById('rLatency').textContent = Math.round(data.latency_ms);
+  document.getElementById('rType').textContent = data.doc_type;
+  document.getElementById('ingestResult').classList.add('show');
+}
+
+// ── Load Documents ────────────────────────────────────────
+async function loadDocuments() {
+  try {
+    const res = await fetch(`${API}/documents`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const docs = data.documents || [];
+
+    document.getElementById('docCount').textContent = docs.length;
+    document.getElementById('docBadge').textContent = docs.length;
+
+    const list = document.getElementById('docList');
+    if (docs.length === 0) {
+      list.innerHTML = '<div class="doc-empty">No documents ingested yet.<br/>Upload a PDF to get started.</div>';
+      return;
+    }
+
+    list.innerHTML = docs.map(d => `
+      <div class="doc-item">
+        <span class="doc-icon">📄</span>
+        <div class="doc-info">
+          <div class="doc-name">${d.file}</div>
+          <div class="doc-chunks">${d.chunks} chunks · indexed</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+// ── Q&A ──────────────────────────────────────────────────
+function setQ(el) {
+  document.getElementById('questionInput').value = el.textContent;
+  document.getElementById('questionInput').focus();
+}
+
+async function submitQuestion() {
+  const input = document.getElementById('questionInput');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const submitBtn = document.getElementById('submitBtn');
+  const thinking = document.getElementById('thinkingCard');
+
+  submitBtn.disabled = true;
+  thinking.classList.add('show');
+  input.value = '';
+
+  try {
+    const res = await fetch(`${API}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, top_k: 6 })
+    });
+
+    thinking.classList.remove('show');
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Query failed');
+    }
+
+    const data = await res.json();
+
+    queryCount++;
+    totalLatency += data.latency_ms;
+    document.getElementById('queryCount').textContent = queryCount;
+    document.getElementById('avgLatency').textContent = Math.round(totalLatency / queryCount) + 'ms';
+
+    addAnswerCard(data);
+
+  } catch(err) {
+    thinking.classList.remove('show');
+    addErrorCard(q, err.message);
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+function addAnswerCard(data) {
+  const feed = document.getElementById('answerFeed');
+  const isNotFound = data.answer.includes('could not find');
+
+  // Unique sources
+  const seen = new Set();
+  const sources = data.sources.filter(s => {
+    const key = `${s.file}-${s.page}`;
+    if (seen.has(key)) return false;
+    seen.add(key); return true;
+  });
+
+  const card = document.createElement('div');
+  card.className = 'answer-card' + (isNotFound ? ' error-card' : '');
+  card.innerHTML = `
+    <div class="answer-card-header">
+      <div class="answer-question">${data.question}</div>
+      <div class="answer-meta">
+        <span class="meta-chip chip-time">${Math.round(data.latency_ms)}ms</span>
+        <span class="meta-chip chip-chunks">${data.context_chunks} chunks</span>
+      </div>
+    </div>
+    <div class="answer-body">
+      <div class="answer-text ${isNotFound ? 'error-text' : ''}">${formatAnswer(data.answer)}</div>
+    </div>
+    <div class="answer-actions">
+     <button class="action-btn copy-btn">⎘ Copy Answer</button>
+      <button class="action-btn download-btn">↓ Download</button>
+    </div>
+    <div class="answer-sources">
+      <span class="sources-label">Sources</span>
+      ${sources.map(s => `
+        <span class="source-tag">
+          📄 Page ${s.page}
+          <span class="source-score">${(s.score * 100).toFixed(0)}%</span>
+        </span>
+      `).join('')}
+    </div>
+  `;
+  feed.insertBefore(card, feed.firstChild);
+}
+
+function addErrorCard(question, message) {
+  const feed = document.getElementById('answerFeed');
+  const card = document.createElement('div');
+  card.className = 'answer-card error-card';
+  card._question = data.question;
+  card._answer = data.answer;
+  card._sources = sources;
+  card.innerHTML = `
+    <div class="answer-card-header">
+      <div class="answer-question">${question}</div>
+    </div>
+    <div class="answer-body">
+      <div class="answer-text error-text">Error: ${message}</div>
+    </div>
+  `;
+  feed.insertBefore(card, feed.firstChild);
+  // Wire up buttons safely
+  card.querySelector('.copy-btn').addEventListener('click', function() {
+    copyAnswer(this, card._answer);
+  });
+  card.querySelector('.download-btn').addEventListener('click', function() {
+    downloadAnswer(this, card._question, card._answer, card._sources);
+  });
+}
+
+function formatAnswer(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[Source (\d+), Page ([\d.]+)\]/g,
+      '<span style="font-family:var(--ff-mono);font-size:.72rem;background:var(--cream);padding:1px 6px;border:1px solid var(--rule);color:var(--accent2)">[Src $1 · P$2]</span>')
+    .replace(/\n/g, '<br/>');
+}
+// ── Copy & Download ───────────────────────────────────────
+function copyAnswer(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '⎘ Copy Answer';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '⎘ Copy Answer';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+function downloadAnswer(btn, question, answer, sources) {
+  const date = new Date().toLocaleString();
+  
+  const sourceLines = sources.map(s =>
+    `  - ${s.file} | Page ${s.page} | Relevance: ${(s.score * 100).toFixed(0)}%`
+  ).join('\n');
+
+  const content = `MULTIMODAL DOC INTELLIGENCE — Query Export
+==========================================
+Date: ${date}
+
+QUESTION:
+${question}
+
+ANSWER:
+${answer}
+
+SOURCES:
+${sourceLines}
+
+==========================================
+Generated by Multimodal Document Intelligence System
+GPT-4o Vision + Weaviate Hybrid Search
+`;
+
+  // Most reliable cross-browser download method
+  const encoded = encodeURIComponent(content);
+  const dataUri = 'data:text/plain;charset=utf-8,' + encoded;
+  
+  const link = document.createElement('a');
+  link.setAttribute('href', dataUri);
+  link.setAttribute('download', `mdi-answer-${Date.now()}.txt`);
+  link.style.display = 'none';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  btn.textContent = '✓ Downloaded!';
+  btn.classList.add('copied');
+  setTimeout(() => {
+    btn.textContent = '↓ Download';
+    btn.classList.remove('copied');
+  }, 2000);
+}
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 3500);
+}
+</script>
+</body>
+</html>
